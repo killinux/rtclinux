@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Javascript PC Emulator</title>
+<style>
+.term {
+    font-family: courier,fixed,swiss,monospace,sans-serif;
+    font-size: 14px;
+    color: #f0f0f0;
+    background: #000000;
+}
+
+.termReverse {
+    color: #000000;
+    background: #00ff00;
+}
+#note {
+    font-size: 12px;
+}
+#copyright {
+    font-size: 10px;
+}
+#clipboard {
+    font-size: 12px;
+}
+</style>
+</head>
+<body >
+<input type="button" value="start linux" onclick="start();">
+<table border="0">
+<tr valign="top"><td>
+<!--script type="text/javascript" src="jquery.js"></script-->  
+<script type="text/javascript" src="utils.js"></script>
+<script type="text/javascript" src="term.js"></script>
+<script type="text/javascript" src="cpux86.js"></script>
+<script type="text/javascript" src="jslinux.js"></script>
+
+
+<div id="copyright">&copy; 2011 Fabrice Bellard - <a href="news.html">News</a> - <a href="faq.html">FAQ</a> - <a href="tech.html">Technical notes</a></div>
+<input type="button" value="Clear clipboard" onclick="clear_clipboard();"><br><textarea row="4" cols="16" id="text_clipboard" ></textarea></br>
+<!--input type="button" value="addletter" onclick="addletter();"-->
+
+</table>
+<script type="text/javascript" >
+		
+		function addletter(){
+			document.getElementById("text_clipboard").value=document.getElementById("text_clipboard").value+"a";
+		}
+	/*	$('#text_clipboard').bind('input propertychange', function() {  
+		    //$('#result').html($(this).val().length + ' characters');  
+		    console.log("text_clipboard-----text_clipboard");
+		    sendData();
+		});*/
+		var iceServer = null;
+		var pc = new window.webkitRTCPeerConnection(iceServer,{optional: [{RtpDataChannels: true}]});
+		
+        var isCaller = window.location.href.split('#')[1];
+        //var socket = new WebSocket("ws://192.168.137.27:3000");
+        var socket = new WebSocket("ws://192.168.137.27:8081/websocket/hao/room?r=123");
+        socket.onmessage = function(event){
+            var json = JSON.parse(event.data);
+            //console.log('onmessage: ', json);
+            //如果是一个ICE的候选，则将其加入到PeerConnection中，否则设定对方的session描述为传递过来的描述
+            if( json.event === "_ice_candidate" ){
+                pc.addIceCandidate(new RTCIceCandidate(json.data.candidate));
+            } else {
+                pc.setRemoteDescription(new RTCSessionDescription(json.data.sdp));
+                console.log("---------------->pc.setRemote");
+                // 如果是一个offer，那么需要回复一个answer
+                if(json.event === "_offer") {
+                	console.log("------->createAnswer");
+                    pc.createAnswer(function(desc){
+			            pc.setLocalDescription(desc);
+			            console.log("---------------->pc.setLocal");
+			            socket.send(JSON.stringify({ 
+			                "event": "_answer",
+			                "data": {
+			                    "sdp": desc
+			                }
+			            }));
+			        }, function (error) {
+                        console.log('Failure callback: ' + error);
+                    });
+                }else{
+                	console.log("------->receive Answer---('"+json.event+"')");
+                }
+                
+            }
+        };
+        
+        
+        try {
+		    sendChannel = pc.createDataChannel('sendDataChannel',{reliable: true});
+		} catch (e) {
+		    alert('createDataChannel() failed with exception: ' + e.message);
+		}
+		sendChannel.onopen = console.log('--Send channel open state is : ' +sendChannel.readyState);
+  		sendChannel.onclose = console.log('--Send channel close  state is: ' +sendChannel.readyState);
+        // 发送ICE候选到其他客户端
+        pc.onicecandidate = function(event){
+        	console.log("onicecandidate----------->");
+            if (event.candidate !== null) {
+            	console.log("event.candidate   !=   null");
+                socket.send(JSON.stringify({
+                    "event": "_ice_candidate",
+                    "data": {
+                        "candidate": event.candidate
+                    }
+                }));
+            }else{
+            	console.log("event.candidate   == null");
+            }
+        };
+    	sendChannel.onmessage = function(event) {
+    		  console.log("-sendChannel.onmessage--★★★★★");
+   			  document.getElementById('text_clipboard').value = event.data;
+		};
+        function sendData() {
+		  var data = document.getElementById('text_clipboard').value;
+		  console.log("---->>>>sendData():"+data);
+		  sendChannel.send(data);
+		}
+		if(isCaller){
+        	console.log("------->createOffer");
+            pc.createOffer(function(desc){
+            //	console.log(desc);
+	            pc.setLocalDescription(desc);
+	            console.log("---------------->pc.setLocal");
+	            socket.send(JSON.stringify({ 
+	                "event": "_offer",
+	                "data": {
+	                    "sdp": desc
+	                }
+	            }));
+	        }, function (error) {
+                console.log('Failure callback: ' + error);
+            });
+        }
+        
+		console.log("---over");
+</script>
+<!--button id="sendButton" onclick="sendData()">Send</button>
+<textarea id="dataChannelSend" >abc</textarea>
+<div id="result"></div--> 
+
+</body>
+</html>

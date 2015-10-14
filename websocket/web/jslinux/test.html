@@ -1,0 +1,27 @@
+<!DOCTYPE html>  
+<html>  
+    <head>  
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">  
+        <title>RunJS</title>  
+    <script type="text/javascript" class="library" src="jquery.js"></script>  
+    </head>  
+    <body>    
+        <input type="text" id="text_clipboard" onchange="alert('dddd');">  
+        <input type="button" value="addletter" onclick="addletter();">
+        <div id="result"></div>  
+    </body>  
+</html>  
+
+<script>
+	function addletter(){
+			document.getElementById("text_clipboard").value=document.getElementById("text_clipboard").value+"a";
+		}
+$(document).ready(function(){  
+/*	$('#text_clipboard').bind('input propertychange', function() {  
+	
+	    $('#result').html($(this).val().length + ' characters');  
+	});*/
+	var abc=	$('#text_clipboard');
+	abc.val('sss').change();
+});
+</script>
