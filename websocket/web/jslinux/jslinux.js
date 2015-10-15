@@ -56,6 +56,7 @@ function get_boot_time()
 
 function start()
 {
+	document.getElementById("startbtn").disabled=true;//add by haoning
     var params;
     
     init_state = new Object();
