@@ -40,7 +40,7 @@
 </table>
 <script type="text/javascript" >
 		function GetRequest() { 
-			var url = location.search; //»ñÈ¡urlÖÐ"?"·ûºóµÄ×Ö´® 
+			var url = location.search; //èŽ·å–urlä¸­"?"ç¬¦åŽçš„å­—ä¸² 
 			var theRequest = new Object(); 
 			if (url.indexOf("?") != -1) { 
 				var str = url.substr(1); 
@@ -59,23 +59,44 @@
         var isCaller = Request['c'];//window.location.href.split('#')[1];
         console.log("isCaller--------"+isCaller);
         //var socket = new WebSocket("ws://192.168.137.27:3000");
-        var socket = new WebSocket("ws://192.168.137.27:8081/websocket/hao/room?r="+Request['r']);
+        //var socket = new WebSocket("ws://192.168.137.27:8081/hao/room?r="+Request['r']);
+        var socket = new WebSocket("ws://killinux.com/hao/room?r="+Request['r']);
+        var thissend = function (message, callback) {
+		    this.waitForConnection(function () {
+		        socket.send(message);
+		        if (typeof callback !== 'undefined') {
+		          callback();
+		        }
+		    }, 1000);
+		};
+
+		this.waitForConnection = function (callback, interval) {
+		    if (socket.readyState === 1) {
+		        callback();
+		    } else {
+		        var that = this;
+		        // optional: implement backoff for interval here
+		        setTimeout(function () {
+		            that.waitForConnection(callback, interval);
+		        }, interval);
+		    }
+		};
         socket.onmessage = function(event){
             var json = JSON.parse(event.data);
             //console.log('onmessage: ', json);
-            //Èç¹ûÊÇÒ»¸öICEµÄºòÑ¡£¬Ôò½«Æä¼ÓÈëµ½PeerConnectionÖÐ£¬·ñÔòÉè¶¨¶Ô·½µÄsessionÃèÊöÎª´«µÝ¹ýÀ´µÄÃèÊö
+            //å¦‚æžœæ˜¯ä¸€ä¸ªICEçš„å€™é€‰ï¼Œåˆ™å°†å…¶åŠ å…¥åˆ°PeerConnectionä¸­ï¼Œå¦åˆ™è®¾å®šå¯¹æ–¹çš„sessionæè¿°ä¸ºä¼ é€’è¿‡æ¥çš„æè¿°
             if( json.event === "_ice_candidate" ){
                 pc.addIceCandidate(new RTCIceCandidate(json.data.candidate));
             } else {
                 pc.setRemoteDescription(new RTCSessionDescription(json.data.sdp));
                 console.log("---------------->pc.setRemote");
-                // Èç¹ûÊÇÒ»¸öoffer£¬ÄÇÃ´ÐèÒª»Ø¸´Ò»¸öanswer
+                // å¦‚æžœæ˜¯ä¸€ä¸ªofferï¼Œé‚£ä¹ˆéœ€è¦å›žå¤ä¸€ä¸ªanswer
                 if(json.event === "_offer") {
                 	console.log("------->createAnswer");
                     pc.createAnswer(function(desc){
 			            pc.setLocalDescription(desc);
 			            console.log("---------------->pc.setLocal");
-			            socket.send(JSON.stringify({ 
+			            thissend(JSON.stringify({ 
 			                "event": "_answer",
 			                "data": {
 			                    "sdp": desc
@@ -99,12 +120,12 @@
 		}
 		sendChannel.onopen = console.log('--Send channel open state is : ' +sendChannel.readyState);
   		sendChannel.onclose = console.log('--Send channel close  state is: ' +sendChannel.readyState);
-        // ·¢ËÍICEºòÑ¡µ½ÆäËû¿Í»§¶Ë
+        // å‘é€ICEå€™é€‰åˆ°å…¶ä»–å®¢æˆ·ç«¯
         pc.onicecandidate = function(event){
         	console.log("onicecandidate----------->");
             if (event.candidate !== null) {
             	console.log("event.candidate   !=   null");
-                socket.send(JSON.stringify({
+                thissend(JSON.stringify({
                     "event": "_ice_candidate",
                     "data": {
                         "candidate": event.candidate
@@ -115,7 +136,7 @@
             }
         };
     	sendChannel.onmessage = function(event) {
-    		  console.log("-sendChannel.onmessage--¡ï¡ï¡ï¡ï¡ï");
+    		  console.log("-sendChannel.onmessage--");
    			  document.getElementById('text_clipboard').value = event.data;
 		};
         function sendData() {
@@ -129,7 +150,7 @@
             //	console.log(desc);
 	            pc.setLocalDescription(desc);
 	            console.log("---------------->pc.setLocal");
-	            socket.send(JSON.stringify({ 
+	            thissend(JSON.stringify({ 
 	                "event": "_offer",
 	                "data": {
 	                    "sdp": desc
