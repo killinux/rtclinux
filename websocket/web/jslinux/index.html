@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>Javascript PC Emulator</title>
 <style>
 .term {
@@ -26,9 +27,7 @@
 </style>
 </head>
 <body >
-weibo:<a href="http://weibo.com/killinux">微博</a>
-<a href="http://haoningabc.iteye.com/blog/2249460">iteye博客</a>
-<input type="button" value="start linux" onclick="start();"><div id="answer"></div>
+<input type="button" id="startbtn" value="start linux" onclick="start();"><div id="answer"></div>
 <table border="0">
 <tr valign="top"><td>
 <script type="text/javascript" src="utils.js"></script>
@@ -165,6 +164,19 @@ weibo:<a href="http://weibo.com/killinux">微博</a>
         
 		console.log("---over");
 </script>
+<pre>
+说明：
+测试的时候 
+	1.  http://killinux.com/jslinux/?r=5555 
+		http://killinux.com/jslinux/?r=5555&c=true 
+		打开两个网页，r为room号，两个页面相同即可 
+	2.两个浏览器分别Start linux
+	3.然后在一个页面的jslinux中：  tail -f /dev/clipboard 
+	     另一个 页面：echo sssssssssss >/dev/clipboard 
+</pre>
+jslinux代码来自<a href="http://bellard.org">http://bellard.org</a></br>
+<a href="http://weibo.com/killinux" target="_blank">我的微博</a></br>
+<a href="http://haoningabc.iteye.com/blog/2249460" target="_blank">我的博客</a>
 <!--button id="sendButton" onclick="sendData()">Send</button>
 <textarea id="dataChannelSend" >abc</textarea>
 <div id="result"></div--> 
