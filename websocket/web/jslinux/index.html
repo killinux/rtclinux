@@ -27,7 +27,7 @@
 </style>
 </head>
 <body >
-<input type="button" id="startbtn" value="start linux" onclick="start();"><div id="answer"></div>
+<input type="button" id="startbtn" value="start linux" onclick="start();"><div id="answer" style="font-color:red"></div>
 <table border="0">
 <tr valign="top"><td>
 <script type="text/javascript" src="utils.js"></script>
@@ -106,6 +106,7 @@
                     });
                 }else if (json.event === "_answer"){
                 	console.log("------->receive Answer---('"+json.event+"')");
+                	document.getElementById("answer").innerText="connected";
                 }else{
                 	console.log("------->error---('"+json.event+"')");
                 }
@@ -167,8 +168,8 @@
 <pre>
 说明：
 测试的时候 
-	1.  http://killinux.com/jslinux/?r=5555 
-		http://killinux.com/jslinux/?r=5555&c=true 
+	1.<a href="http://killinux.com/jslinux/?r=5555">http://killinux.com/jslinux/?r=5555</a>
+      <a href="http://killinux.com/jslinux/?r=5555&c=true">http://killinux.com/jslinux/?r=5555&c=true</a>
 		打开两个网页，r为room号，两个页面相同即可 
 	2.两个浏览器分别Start linux
 	3.然后在一个页面的jslinux中：  tail -f /dev/clipboard 
